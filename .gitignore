@@ -1,0 +1,16 @@
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# Log files
+logs/
+*.log
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Uploaded files (if they are generated dynamically)
+uploads/
