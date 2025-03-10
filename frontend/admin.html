@@ -1,0 +1,51 @@
+<!-- frontend/admin.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Panel - Content Management</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- No sticky header here to avoid covering login form -->
+  <main class="main-content">
+    <div class="admin-container">
+      <h2>Admin Panel</h2>
+      <!-- Login Form -->
+      <div id="login-form">
+        <h3>Login</h3>
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button id="loginBtn">Login</button>
+        <p id="login-error" class="error"></p>
+      </div>
+      <!-- Admin Content: Visible after login -->
+      <div id="admin-content" style="display: none;">
+        <!-- Upload Video/Tutorial Form -->
+        <div id="upload-form">
+          <h3>Upload Video/Tutorial</h3>
+          <input type="text" id="upload-title" placeholder="Title" required>
+          <textarea id="upload-description" placeholder="Description"></textarea>
+          <input type="text" id="videoUrl" placeholder="Video URL" required>
+          <button id="uploadBtn">Upload</button>
+          <p id="upload-message"></p>
+        </div>
+        <!-- Upload CV Form -->
+        <div id="cv-upload-form">
+          <h3>Upload Latest CV</h3>
+          <input type="file" id="cvFile" accept=".pdf,.doc,.docx" required>
+          <button id="uploadCvBtn">Upload CV</button>
+          <p id="cv-upload-message"></p>
+        </div>
+        <!-- List of Uploads -->
+        <div id="uploads-list">
+          <h3>Uploaded Content</h3>
+          <ul id="uploads"></ul>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
