@@ -3,73 +3,53 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const helmet = require('helmet');
+const bodyParser = require('body-parser');
+const path = require('path');
+const fs = require('fs');
 
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
-const User = require('./models/User');
+const sampleProjectsRoutes = require('./routes/sampleProjects');
+const blogsRoutes = require('./routes/blogs');
 
 const app = express();
 
-// Use Helmet to set secure HTTP headers
+// Ensure the uploads directory exists
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+  console.log('Uploads folder created.');
+}
+
+// Serve uploaded files and static frontend files
+app.use('/uploads', express.static(uploadDir));
+app.use(express.static(path.join(__dirname, '..', 'frontend')));
+
+// Security, CORS, and Body Parser
 app.use(helmet());
-
-// Enable CORS with allowed origins from environment variables (adjust for production)
-app.use(
-  cors({
-    origin: process.env.ALLOWED_ORIGINS || '*'
-  })
-);
-
-// Parse JSON bodies
+app.use(cors({ origin: process.env.ALLOWED_ORIGINS || '*' }));
 app.use(bodyParser.json());
+app.use(express.json());
 
-// Serve uploaded files (for CVs, videos, etc.)
-app.use('/uploads', express.static('uploads'));
-
-// Connect to MongoDB
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/cvWebsite';
-mongoose
-  .connect(MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
-  .then(() => {
-    console.log('MongoDB connected');
-
-    // Seed default admin account only in development
-    if (process.env.NODE_ENV !== 'production') {
-      User.findOne({ username: 'admin' })
-        .then(user => {
-          if (!user) {
-            const admin = new User({ username: 'admin', password: 'admin123', isAdmin: true });
-            admin
-              .save()
-              .then(() => console.log("Default admin created: username 'admin', password 'admin123'"))
-              .catch(err => console.error("Error creating admin:", err));
-          } else {
-            console.log("Admin account already exists.");
-          }
-        })
-        .catch(err => console.error("Error checking admin:", err));
-    } else {
-      console.log("Skipping default admin seeding in production.");
-    }
-  })
-  .catch(err => console.error('MongoDB connection error:', err));
-
-// Routes
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/sample-projects', sampleProjectsRoutes);
+app.use('/api/blogs', blogsRoutes);
 
-// Global Error Handler
+// Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Connect to MongoDB and start the server
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/johnpcv';
+mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => {
+    console.log('MongoDB connected');
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => { console.log(`Server running on port ${PORT}`); });
+  })
+  .catch(err => console.error('MongoDB connection error:', err));

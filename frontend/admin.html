@@ -6,9 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Admin Panel - Content Management</title>
   <link rel="stylesheet" href="style.css">
+  <!-- Include CKEditor CDN for rich text editing in blogs -->
+  <!-- Include CKEditor CDN for rich text editing in blogs -->
+  <script src="https://cdn.ckeditor.com/4.25.1-lts/standard/ckeditor.js"></script>
 </head>
 <body>
-  <!-- No sticky header here to avoid covering login form -->
   <main class="main-content">
     <div class="admin-container">
       <h2>Admin Panel</h2>
@@ -19,33 +21,51 @@
         <input type="password" id="password" placeholder="Password" required>
         <button id="loginBtn">Login</button>
         <p id="login-error" class="error"></p>
+        <p><a href="index.html">Back to Home</a></p>
       </div>
       <!-- Admin Content: Visible after login -->
       <div id="admin-content" style="display: none;">
-        <!-- Upload Video/Tutorial Form -->
-        <div id="upload-form">
-          <h3>Upload Video/Tutorial</h3>
-          <input type="text" id="upload-title" placeholder="Title" required>
-          <textarea id="upload-description" placeholder="Description"></textarea>
-          <input type="text" id="videoUrl" placeholder="Video URL" required>
-          <button id="uploadBtn">Upload</button>
-          <p id="upload-message"></p>
+        <button id="logoutBtn">Logout</button>
+        <!-- Section for uploading Sample Projects (Videos) -->
+        <div id="sample-project-upload">
+          <h3>Upload Sample Project (Video)</h3>
+          <input type="text" id="sample-title" placeholder="Title" required>
+          <textarea id="sample-description" placeholder="Description"></textarea>
+          <!-- Only one file input for video file -->
+          <input type="file" id="sample-video" accept="video/*" required>
+          <button id="uploadSampleBtn">Upload Sample Project</button>
+          <p id="sample-upload-message"></p>
         </div>
-        <!-- Upload CV Form -->
-        <div id="cv-upload-form">
-          <h3>Upload Latest CV</h3>
-          <input type="file" id="cvFile" accept=".pdf,.doc,.docx" required>
-          <button id="uploadCvBtn">Upload CV</button>
-          <p id="cv-upload-message"></p>
+        <!-- Section for managing Sample Projects -->
+        <div id="manage-sample-projects">
+          <h3>Manage Sample Projects</h3>
+          <ul id="sample-projects-list"></ul>
         </div>
-        <!-- List of Uploads -->
-        <div id="uploads-list">
-          <h3>Uploaded Content</h3>
-          <ul id="uploads"></ul>
+        <!-- Blog Management Section -->
+        <div id="blog-management">
+          <h3>Manage Blogs</h3>
+          <div id="add-blog">
+            <input type="text" id="blog-title" placeholder="Blog Title" required>
+            <!-- Rich text editor for blog content -->
+            <textarea id="blog-content" placeholder="Blog Content" required></textarea>
+            <input type="text" id="blog-image" placeholder="Image URL (optional)">
+            <button id="addBlogBtn">Add Blog</button>
+            <p id="blog-message"></p>
+          </div>
+          <div id="manage-blogs">
+            <h4>Existing Blogs</h4>
+            <ul id="blogs-list"></ul>
+          </div>
         </div>
       </div>
     </div>
   </main>
   <script src="app.js"></script>
+  <script>
+    // Initialize CKEditor for blog content textarea
+    if(document.getElementById('blog-content')){
+      CKEDITOR.replace('blog-content');
+    }
+  </script>
 </body>
 </html>

@@ -1,49 +1,20 @@
 // frontend/app.js
 
-// Interactive Heading Typewriter Effect for the Tagline
-const taglineElement = document.getElementById('tagline');
-const taglineTexts = ["AI/ML Enthusiast", "Full Stack Developer", "IOT Developer", "ABAP Developer", "SAP Data Migration", "Python Developer"];
-let currentTextIndex = 0;
-let charIndex = 0;
-let isDeleting = false;
-
-function typewriter() {
-  const currentText = taglineTexts[currentTextIndex];
-  let displayedText = currentText.substring(0, charIndex);
-  taglineElement.textContent = displayedText;
-
-  if (!isDeleting && charIndex < currentText.length) {
-    charIndex++;
-    setTimeout(typewriter, 150);
-  } else if (isDeleting && charIndex > 0) {
-    charIndex--;
-    setTimeout(typewriter, 100);
-  } else {
-    isDeleting = !isDeleting;
-    if (!isDeleting) {
-      currentTextIndex = (currentTextIndex + 1) % taglineTexts.length;
-    }
-    setTimeout(typewriter, 1000);
-  }
-}
-
-if (taglineElement) {
-  typewriter();
-}
-
-// Admin Page Functionality
+// ------------------------------
+// Admin Panel Functionality
+// ------------------------------
 if (document.getElementById('loginBtn')) {
   const loginBtn = document.getElementById('loginBtn');
-  loginBtn.addEventListener('click', async () => {
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
-    
-    // Basic client-side validation
+  const usernameInput = document.getElementById('username');
+  const passwordInput = document.getElementById('password');
+
+  async function login() {
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value.trim();
     if (!username || !password) {
       document.getElementById('login-error').innerText = 'Please enter both username and password.';
       return;
     }
-    
     try {
       const res = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
@@ -55,7 +26,8 @@ if (document.getElementById('loginBtn')) {
         localStorage.setItem('token', data.token);
         document.getElementById('login-form').style.display = 'none';
         document.getElementById('admin-content').style.display = 'block';
-        loadUploads();
+        loadSampleProjectsAdmin();
+        loadBlogsAdmin();
       } else {
         document.getElementById('login-error').innerText = data.error || 'Login failed';
       }
@@ -63,139 +35,219 @@ if (document.getElementById('loginBtn')) {
       document.getElementById('login-error').innerText = 'An error occurred during login.';
       console.error('Login error:', error);
     }
+  }
+
+  loginBtn.addEventListener('click', login);
+  [usernameInput, passwordInput].forEach(input => {
+    input.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') login();
+    });
   });
 }
 
-// Upload Video/Tutorial Functionality
-if (document.getElementById('uploadBtn')) {
-  const uploadBtn = document.getElementById('uploadBtn');
-  uploadBtn.addEventListener('click', async () => {
-    const title = document.getElementById('upload-title').value.trim();
-    const description = document.getElementById('upload-description').value.trim();
-    const videoUrl = document.getElementById('videoUrl').value.trim();
-    
-    // Basic client-side validation
-    if (!title || !videoUrl) {
-      document.getElementById('upload-message').innerText = 'Title and Video URL are required.';
+if (document.getElementById('logoutBtn')) {
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.removeItem('token');
+    window.location.href = 'index.html';
+  });
+}
+
+// ------------------------------
+// Sample Projects Management (Admin)
+// ------------------------------
+if (document.getElementById('uploadSampleBtn')) {
+  document.getElementById('uploadSampleBtn').addEventListener('click', async () => {
+    const title = document.getElementById('sample-title').value.trim();
+    const description = document.getElementById('sample-description').value.trim();
+    const videoFile = document.getElementById('sample-video').files[0];
+    if (!title || !videoFile) {
+      document.getElementById('sample-upload-message').innerText = 'Title and video file are required.';
       return;
     }
-    
     const token = localStorage.getItem('token');
-
+    if (!token) {
+      document.getElementById('sample-upload-message').innerText = 'Not authenticated. Please log in.';
+      return;
+    }
+    const formData = new FormData();
+    formData.append('video', videoFile);
+    formData.append('title', title);
+    formData.append('description', description);
     try {
-      const res = await fetch('http://localhost:5000/api/admin/upload', {
+      const res = await fetch('http://localhost:5000/api/admin/sample-projects', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'authorization': token
-        },
-        body: JSON.stringify({ title, description, videoUrl })
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
       });
       const data = await res.json();
-      if (data.upload) {
-        document.getElementById('upload-message').innerText = 'Upload successful!';
-        loadUploads();
+      if (res.ok && data.sampleProject) {
+        document.getElementById('sample-upload-message').innerText = 'Sample project uploaded!';
+        loadSampleProjectsAdmin();
       } else {
-        document.getElementById('upload-message').innerText = data.error || 'Upload failed.';
+        document.getElementById('sample-upload-message').innerText = data.error || 'Upload failed.';
       }
     } catch (error) {
-      document.getElementById('upload-message').innerText = 'An error occurred during upload.';
+      document.getElementById('sample-upload-message').innerText = 'An error occurred during upload.';
       console.error('Upload error:', error);
     }
   });
 }
 
-// CV Upload Functionality
-if (document.getElementById('uploadCvBtn')) {
-  const uploadCvBtn = document.getElementById('uploadCvBtn');
-  uploadCvBtn.addEventListener('click', async () => {
-    const cvFile = document.getElementById('cvFile').files[0];
-    if (!cvFile) {
-      document.getElementById('cv-upload-message').innerText = 'Please select a file to upload.';
+async function loadSampleProjectsAdmin() {
+  const token = localStorage.getItem('token');
+  try {
+    const res = await fetch('http://localhost:5000/api/sample-projects', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const projects = await res.json();
+    const list = document.getElementById('sample-projects-list');
+    list.innerHTML = '';
+    projects.forEach(project => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <strong>${project.title}</strong>
+        <button onclick="editSampleProject('${project._id}')">Edit</button>
+        <button onclick="deleteSampleProject('${project._id}')">Delete</button>
+      `;
+      list.appendChild(li);
+    });
+  } catch (error) {
+    console.error('Error loading sample projects:', error);
+  }
+}
+
+window.deleteSampleProject = async function(id) {
+  const token = localStorage.getItem('token');
+  try {
+    const res = await fetch(`http://localhost:5000/api/admin/sample-projects/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (data.message) loadSampleProjectsAdmin();
+    else alert(data.error || 'Failed to delete sample project.');
+  } catch (error) {
+    console.error('Delete error:', error);
+  }
+}
+
+window.editSampleProject = async function(id) {
+  const newTitle = prompt('Enter new title:');
+  if (!newTitle) return;
+  const token = localStorage.getItem('token');
+  try {
+    const res = await fetch(`http://localhost:5000/api/admin/sample-projects/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ title: newTitle })
+    });
+    const data = await res.json();
+    if (data.sampleProject) loadSampleProjectsAdmin();
+    else alert(data.error || 'Failed to update sample project.');
+  } catch (error) {
+    console.error('Edit error:', error);
+  }
+}
+
+// ------------------------------
+// Blog Management (Admin)
+// ------------------------------
+if (document.getElementById('addBlogBtn')) {
+  document.getElementById('addBlogBtn').addEventListener('click', async () => {
+    const title = document.getElementById('blog-title').value.trim();
+    const content = CKEDITOR.instances['blog-content'].getData();
+    const image = document.getElementById('blog-image').value.trim();
+    if (!title || !content) {
+      document.getElementById('blog-message').innerText = 'Title and content are required.';
       return;
     }
     const token = localStorage.getItem('token');
-    const formData = new FormData();
-    formData.append('cv', cvFile);
-
+    if (!token) {
+      document.getElementById('blog-message').innerText = 'Not authenticated. Please log in.';
+      return;
+    }
     try {
-      const res = await fetch('http://localhost:5000/api/admin/upload-cv', {
+      const res = await fetch('http://localhost:5000/api/admin/blogs', {
         method: 'POST',
-        headers: { 'authorization': token },
-        body: formData
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ title, content, image })
       });
       const data = await res.json();
-      if (data.message) {
-        document.getElementById('cv-upload-message').innerText = data.message;
+      if (res.ok && data.blog) {
+        document.getElementById('blog-message').innerText = 'Blog created!';
+        loadBlogsAdmin();
       } else {
-        document.getElementById('cv-upload-message').innerText = data.error || 'CV upload failed.';
+        document.getElementById('blog-message').innerText = data.error || 'Failed to add blog.';
       }
     } catch (error) {
-      document.getElementById('cv-upload-message').innerText = 'An error occurred during CV upload.';
-      console.error('CV Upload error:', error);
+      document.getElementById('blog-message').innerText = 'An error occurred while adding the blog.';
+      console.error('Add blog error:', error);
     }
   });
 }
 
-// Load uploaded content for the admin panel
-async function loadUploads() {
+async function loadBlogsAdmin() {
   const token = localStorage.getItem('token');
   try {
-    const res = await fetch('http://localhost:5000/api/admin/uploads', {
-      headers: { 'authorization': token }
+    const res = await fetch('http://localhost:5000/api/blogs', {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
-    const uploads = await res.json();
-    const uploadsList = document.getElementById('uploads');
-    uploadsList.innerHTML = '';
-    uploads.forEach(upload => {
+    const blogs = await res.json();
+    const list = document.getElementById('blogs-list');
+    list.innerHTML = '';
+    blogs.forEach(blog => {
       const li = document.createElement('li');
-      li.innerHTML = `<strong>${upload.title}</strong> - ${upload.description} <br> <a href="${upload.videoUrl}" target="_blank">Watch Video</a>`;
-      uploadsList.appendChild(li);
+      li.innerHTML = `
+        <strong>${blog.title}</strong>
+        <button onclick="editBlog('${blog._id}')">Edit</button>
+        <button onclick="deleteBlog('${blog._id}')">Delete</button>
+      `;
+      list.appendChild(li);
     });
   } catch (error) {
-    console.error('Error loading uploads:', error);
+    console.error('Error loading blogs:', error);
   }
 }
 
-/* Simple Live Chat Widget Functionality */
-const chatToggle = document.querySelector('.chat-toggle');
-const chatPanel = document.querySelector('.chat-panel');
-const chatClose = document.querySelector('.chat-close');
-const chatSendBtn = document.getElementById('chatSendBtn');
-const chatInput = document.getElementById('chatInput');
-const chatBody = document.getElementById('chatBody');
+window.deleteBlog = async function(id) {
+  const token = localStorage.getItem('token');
+  try {
+    const res = await fetch(`http://localhost:5000/api/admin/blogs/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (data.message) loadBlogsAdmin();
+    else alert(data.error || 'Failed to delete blog.');
+  } catch (error) {
+    console.error('Delete blog error:', error);
+  }
+}
 
-// Toggle chat panel
-chatToggle.addEventListener('click', () => {
-  chatPanel.style.display = chatPanel.style.display === 'flex' ? 'none' : 'flex';
-});
-chatClose.addEventListener('click', () => {
-  chatPanel.style.display = 'none';
-});
-
-// Simulated chat send functionality (replace with real-time chat API as needed)
-chatSendBtn.addEventListener('click', () => {
-  const message = chatInput.value.trim();
-  if (!message) return;
-  
-  // Create user message element
-  const userMsg = document.createElement('div');
-  userMsg.classList.add('chat-message', 'user-message');
-  userMsg.textContent = message;
-  chatBody.appendChild(userMsg);
-  
-  // Clear input
-  chatInput.value = '';
-  
-  // Scroll to bottom
-  chatBody.scrollTop = chatBody.scrollHeight;
-  
-  // Simulated auto-response (for demo purposes)
-  setTimeout(() => {
-    const botMsg = document.createElement('div');
-    botMsg.classList.add('chat-message', 'bot-message');
-    botMsg.textContent = "Thanks for your message! I'll get back to you shortly.";
-    chatBody.appendChild(botMsg);
-    chatBody.scrollTop = chatBody.scrollHeight;
-  }, 1000);
-});
+window.editBlog = async function(id) {
+  const newTitle = prompt('Enter new blog title:');
+  const newContent = prompt('Enter new blog content (HTML allowed):');
+  if (!newTitle || !newContent) return;
+  const token = localStorage.getItem('token');
+  try {
+    const res = await fetch(`http://localhost:5000/api/admin/blogs/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ title: newTitle, content: newContent })
+    });
+    const data = await res.json();
+    if (data.blog) loadBlogsAdmin();
+    else alert(data.error || 'Failed to update blog.');
+  } catch (error) {
+    console.error('Edit blog error:', error);
+  }
+};

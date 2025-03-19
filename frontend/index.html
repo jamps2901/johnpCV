@@ -6,16 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>My Professional CV</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
 </head>
 <body>
-  <!-- AI Background Container -->
-  <div class="ai-bg"></div>
+  <div id="particles-js"></div>
 
-  <!-- Sticky Header -->
   <header class="ai-header">
-    <!-- Interactive Heading -->
     <h1 id="interactive-heading">John Rey Patnugot</h1>
-    <!-- Fixed tagline container so header size remains constant -->
     <p id="tagline"></p>
     <nav>
       <a href="#about">About</a>
@@ -24,76 +21,71 @@
       <a href="admin.html" class="admin-link">Admin Panel</a>
     </nav>
   </header>
-
-  <!-- Main Content (adjusted top margin so header does not cover content) -->
   <main class="main-content">
     <section id="about" class="section about">
       <h2>About Me</h2>
-      <p>
-        A passionate developer with expertise in modern web technologies and AI-driven innovations.
-        A results-oriented professional with extensive experience in SAP data migration, ABAP development, and software engineering.
-        Highly skilled in designing and implementing ETL processes, configuring advanced SAP tools, and collaborating in agile environments to deliver efficient solutions.
-        Expertise in cloud technologies (AWS), machine learning, and data analytics, complemented by training certifications in Python and machine learning.
-        Recognized for problem-solving abilities, attention to detail, and a passion for mentoring teams and supporting community initiatives.
-      </p>
+      <p>A passionate developer with expertise in modern web technologies and AI-driven innovations.</p>
     </section>
-
-    <!-- Horizontally Scrollable Projects Section -->
+    <!-- Projects Section with two subsections -->
     <section id="projects" class="section projects">
       <h2>Projects</h2>
-      <div class="projects-container">
-        <div class="project-card">
-          <h3>Project One</h3>
-          <p>Description of project one.</p>
-          <a href="#">View Project</a>
+      <div class="subsection">
+        <h3>Sample Projects</h3>
+        <div id="sample-projects-container" class="scroll-container">
+          <!-- Sample project cards will load dynamically here -->
         </div>
-        <div class="project-card">
-          <h3>Project Two</h3>
-          <p>Description of project two.</p>
-          <a href="#">View Project</a>
+      </div>
+      <div class="subsection">
+        <h3>Blogs</h3>
+        <div id="blogs-container" class="scroll-container">
+          <!-- Blog cards will load dynamically here -->
         </div>
-        <div class="project-card">
-          <h3>Project Three</h3>
-          <p>Description of project two.</p>
-          <a href="#">View Project</a>
-        </div>
-        <div class="project-card">
-          <h3>Project Four</h3>
-          <p>Description of project two.</p>
-          <a href="#">View Project</a>
-        </div>
-        <div class="project-card">
-          <h3>Project Five</h3>
-          <p>Description of project two.</p>
-          <a href="#">View Project</a>
-        </div>
-        <div class="project-card">
-          <h3>Project Six</h3>
-          <p>Description of project two.</p>
-          <a href="#">View Project</a>
-        </div>
-        <!-- Add additional project cards as needed -->
       </div>
     </section>
-
     <section id="cv-download" class="section cv-download">
       <h2>Download My CV</h2>
       <p>Click the button below to download my latest CV.</p>
-      <a href="http://localhost:5000/uploads/latest_cv.pdf" class="download-btn" download>Download CV</a>
+      <a href="/uploads/latest_cv.pdf" class="download-btn" download>Download CV</a>
     </section>
-
     <section id="contact" class="section contact">
       <h2>Contact Me</h2>
       <p>Email: jamps0129@outlook.co.nz</p>
       <p>Mobile: +64223536095</p>
     </section>
-
     <footer class="footer">
       <p>&copy; 2025 John Rey Patnugot. All rights reserved.</p>
     </footer>
   </main>
-
-  <!-- Chat Widget -->
+  <script>
+    particlesJS("particles-js", {
+      "particles": {
+        "number": { "value": 80 },
+        "color": { "value": "#00e6e6" },
+        "shape": { "type": "circle" },
+        "opacity": { "value": 0.5 },
+        "size": { "value": 3, "random": true },
+        "line_linked": {
+          "enable": true,
+          "distance": 150,
+          "color": "#00e6e6",
+          "opacity": 0.4,
+          "width": 1
+        },
+        "move": { "enable": true, "speed": 2 }
+      },
+      "interactivity": {
+        "detect_on": "canvas",
+        "events": {
+          "onhover": { "enable": true, "mode": "repulse" },
+          "onclick": { "enable": true, "mode": "push" }
+        },
+        "modes": {
+          "repulse": { "distance": 100 }
+        }
+      },
+      "retina_detect": true
+    });
+  </script>
   <div class="chat-widget">
     <button class="chat-toggle">Chat with Me</button>
     <div class="chat-panel">
@@ -101,16 +93,13 @@
         <span>Live Chat</span>
         <button class="chat-close">&times;</button>
       </div>
-      <div class="chat-body" id="chatBody">
-        <!-- Chat messages will appear here -->
-      </div>
+      <div class="chat-body" id="chatBody"></div>
       <div class="chat-footer">
         <input type="text" id="chatInput" placeholder="Type your message...">
         <button id="chatSendBtn">Send</button>
       </div>
     </div>
   </div>
-
   <script src="app.js"></script>
 </body>
 </html>
